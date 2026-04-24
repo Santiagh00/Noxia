@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación Psicológica</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background: #f5f5f5; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; margin-bottom: 30px; }
+        h2 { color: #555; margin: 25px 0 15px; border-bottom: 2px solid #4CAF50; padding-bottom: 5px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #555; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #4CAF50; }
+        .pregunta { margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+        .pregunta label { font-weight: normal; }
+        .pregunta select { margin-top: 5px; }
+        .btn { width: 100%; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        .btn:hover { background: #45a049; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .mensaje { margin-top: 20px; padding: 15px; border-radius: 5px; display: none; }
+        .mensaje.exito { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .mensaje.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .resultado { margin-top: 20px; padding: 20px; background: #e7f3ff; border-radius: 5px; display: none; }
+        .resultado h3 { color: #0056b3; }
+        .diagnostico { margin-top: 20px; padding: 20px; border-radius: 5px; display: none; }
+        .diagnostico.alta { background: #ffebee; border: 2px solid #d32f2f; }
+        .diagnostico.media { background: #fff3e0; border: 2px solid #f57c00; }
+        .diagnostico.baja { background: #e8f5e9; border: 2px solid #388e3c; }
+        .diagnostico h3 { margin-bottom: 10px; }
+        .diagnostico.alta h3 { color: #d32f2f; }
+        .diagnostico.media h3 { color: #f57c00; }
+        .diagnostico.baja h3 { color: #388e3c; }
+        .diagnostico .urgencia { font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .diagnostico .recomendacion { margin-top: 10px; font-style: italic; }
+        .info-personal { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Evaluación Psicológica</h1>
+        <form id="formEvaluacion">
+            <h2>Datos Personales</h2>
+            <div class="info-personal">
+                <div class="form-group">
+                    <label>Nombre Completo *</label>
+                    <input type="text" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Cédula *</label>
+                    <input type="text" name="cedula" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" name="correo">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" name="telefono">
+                </div>
+                <div class="form-group">
+                    <label>Edad</label>
+                    <input type="number" name="edad" min="1" max="120">
+                </div>
+                <div class="form-group">
+                    <label>Género</label>
+                    <select name="genero">
+                        <option value="">Seleccione...</option>
+                        <option value="M">Masculino</option>
+                        <option value="F">Femenino</option>
+                        <option value="O">Otro</option>
+                    </select>
+                </div>
+            </div>
+
+            <h2>DASS-21 (Escala de Depresión, Ansiedad y Estrés)</h2>
+            <p style="color: #666; margin-bottom: 15px;">Indique con qué frecuencia ha experimentado cada situación en la última semana:</p>
+            <div class="preguntas-dass"></div>
+
+            <h2>GAD-7 (Ansiedad Generalizada)</h2>
+            <p style="color: #666; margin-bottom: 15px;">Durante las últimas 2 semanas, ¿con qué frecuencia ha experimentado los siguientes problemas?</p>
+            <div class="preguntas-gad"></div>
+
+            <h2>PHQ-9 (Depresión)</h2>
+            <p style="color: #666; margin-bottom: 15px;">Durante las últimas 2 semanas, ¿con qué frecuencia ha experimentado los siguientes problemas?</p>
+            <div class="preguntas-phq"></div>
+
+            <button type="submit" class="btn">Enviar Evaluación</button>
+        </form>
+
+        <div id="mensaje" class="mensaje"></div>
+        <div id="resultado" class="resultado"></div>
+        <div id="diagnostico" class="diagnostico"></div>
+    </div>
+
+    <script>
+        const dass21 = [
+            "Me costaba mantener la calma",
+            "Me sentí asustado/a sin razón",
+            "Me preocupaba situaciones en las que podría sentirme mal",
+            "Me sentí decaído/a",
+            "No sentí nada de interés por las cosas",
+            "Me sentí inquieto/a",
+            "Pensé que no podría hacer mis tareas diarias",
+            "Me sentí triste",
+            "Me sentí atemorizado/a",
+            "Sentí que no valía nada",
+            "Me sentí muy nervioso/a",
+            "Pensar en el futuro me preocupaba",
+            "Me sentí irritable",
+            "Me costaba tomar decisiones",
+            "Me sentí incapaz de enfrentar mis problemas",
+            "Me sentí sin esperanza",
+            "Me alteré por cosas sin importancia",
+            "Me sentí tenso/a",
+            "Sentí que todo era esfuerzo",
+            "Me sentí asustado/a",
+            "Me sentí abrumado/a"
+        ];
+
+        const gad7 = [
+            "Nerviosismo, ansiedad o tensión",
+            "Incapaz de controlar las preocupaciones",
+            "Preocupación excesiva por diferentes cosas",
+            "Dificultad para relajarse",
+            "Inquietud tal que no podía permanecer quieto/a",
+            "Molestia o irritabilidad",
+            "Miedo a que algo terrible pase"
+        ];
+
+        const phq9 = [
+            "Poco interés o placer en hacer cosas",
+            "Sentirse triste, deprimido/a o sin esperanza",
+            "Dificultad para dormir o dormir demasiado",
+            "Sentirse cansado/a o sin energía",
+            "Poco apetito o comer demasiado",
+            "Sentirse mal consigo mismo/a",
+            "Dificultad para concentrarse",
+            "Moverse o hablar tan lento/a o lo contrario",
+            "Pensamientos de hacerse daño"
+        ];
+
+        const opciones = [
+            { value: "0", text: "No me pasó nunca" },
+            { value: "1", text: "Me pasó algunas veces" },
+            { value: "2", text: "Me pasó medio tiempo" },
+            { value: "3", text: "Me pasó casi siempre" }
+        ];
+
+        const opcionesGadPhq = [
+            { value: "0", text: "Ningún día" },
+            { value: "1", text: "Varios días" },
+            { value: "2", text: "Más de la mitad de los días" },
+            { value: "3", text: "Casi todos los días" }
+        ];
+
+        function crearPreguntas(contenedor, preguntas, opcionesPregunta, nombreBase) {
+            const container = document.querySelector(contenedor);
+            preguntas.forEach((pregunta, index) => {
+                const div = document.createElement('div');
+                div.className = 'pregunta';
+                div.innerHTML = `
+                    <label>${index + 1}. ${pregunta}</label>
+                    <select name="${nombreBase}_${index}" required>
+                        <option value="">Seleccione...</option>
+                        ${opcionesPregunta.map(op => `<option value="${op.value}">${op.text}</option>`).join('')}
+                    </select>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        crearPreguntas('.preguntas-dass', dass21, opciones, 'dass');
+        crearPreguntas('.preguntas-gad', gad7, opcionesGadPhq, 'gad');
+        crearPreguntas('.preguntas-phq', phq9, opcionesGadPhq, 'phq');
+
+        document.getElementById('formEvaluacion').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const evaluacion = {
+                nombre: formData.get('nombre'),
+                cedula: formData.get('cedula'),
+                correo: formData.get('correo'),
+                telefono: formData.get('telefono'),
+                edad: formData.get('edad') ? parseInt(formData.get('edad')) : null,
+                genero: formData.get('genero'),
+                respuestasDass: '',
+                respuestasGad: '',
+                respuestasPhq: ''
+            };
+
+            // Recolectar respuestas DASS
+            let respuestasDass = [];
+            for (let i = 0; i < 21; i++) {
+                const valor = formData.get(`dass_${i}`);
+                if (valor) respuestasDass.push(parseInt(valor));
+            }
+            evaluacion.respuestasDass = respuestasDass.join(',');
+
+            // Recolectar respuestas GAD
+            let respuestasGad = [];
+            for (let i = 0; i < 7; i++) {
+                const valor = formData.get(`gad_${i}`);
+                if (valor) respuestasGad.push(parseInt(valor));
+            }
+            evaluacion.respuestasGad = respuestasGad.join(',');
+
+            // Recolectar respuestas PHQ
+            let respuestasPhq = [];
+            for (let i = 0; i < 9; i++) {
+                const valor = formData.get(`phq_${i}`);
+                if (valor) respuestasPhq.push(parseInt(valor));
+            }
+            evaluacion.respuestasPhq = respuestasPhq.join(',');
+
+            try {
+                const btn = this.querySelector('.btn');
+                btn.disabled = true;
+                btn.textContent = 'Enviando...';
+
+                const response = await fetch('/api/evaluacion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(evaluacion)
+                });
+
+                const json = await response.json();
+                if (json.codigo === 505) {
+                    const resultado = json.datos;
+                    document.getElementById('mensaje').className = 'mensaje exito';
+                    document.getElementById('mensaje').style.display = 'block';
+                    document.getElementById('mensaje').textContent = json.mensaje;
+
+                    const resultadoDiv = document.getElementById('resultado');
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = `
+                        <h3>Resultados</h3>
+                        <p><strong>DASS-21:</strong> Depresión: ${resultado.puntuacionDassDepresion || 0}, Ansiedad: ${resultado.puntuacionDassAnsiedad || 0}, Estrés: ${resultado.puntuacionDassEstres || 0}</p>
+                        <p><strong>GAD-7:</strong> ${resultado.puntuacionGad || 0}</p>
+                        <p><strong>PHQ-9:</strong> ${resultado.puntuacionPhq || 0}</p>
+                        <p><strong>Severidad:</strong> ${resultado.nivelSeveridad || 'NINGUNO'}</p>
+                        <p><strong>Prioridad:</strong> ${resultado.prioridad || 'BAJA'}</p>
+                    `;
+
+                    // Mostrar diagnóstico con urgencia
+                    const diagnosticoDiv = document.getElementById('diagnostico');
+                    const prioridad = resultado.prioridad || 'BAJA';
+                    let claseUrgencia = 'baja';
+                    let textoUrgencia = 'BAJA';
+                    let textoRecomendacion = 'Sus síntomas son leves. Se recomienda mantener hábitos saludables y realizar ejercicio regularmente. Si los síntomas persisten o empeoran, considere buscar orientación profesional.';
+
+                    if (prioridad === 'ALTA') {
+                        claseUrgencia = 'alta';
+                        textoUrgencia = 'ALTA';
+                        textoRecomendacion = '强烈建议您立即寻求专业帮助。您的症状表明可能存在中度至重度心理困扰。建议尽快联系心理健康专业人员或前往最近的医疗机构。如有自杀想法，请立即拨打紧急电话。';
+                    } else if (prioridad === 'MEDIA') {
+                        claseUrgencia = 'media';
+                        textoUrgencia = 'MEDIA';
+                        textoRecomendacion = '建议您预约心理健康专业人士进行评估。您当前的症状表明可能需要专业支持。请在两周内联系心理咨询师或精神科医生。';
+                    }
+
+                    diagnosticoDiv.className = 'diagnostico ' + claseUrgencia;
+                    diagnosticoDiv.style.display = 'block';
+                    diagnosticoDiv.innerHTML = `
+                        <h3>⚠️ Diagnóstico y Nivel de Urgencia</h3>
+                        <div class="urgencia">Nivel de Urgencia: ${textoUrgencia}</div>
+                        <p><strong>Interpretación:</strong></p>
+                        <p>• PHQ-9: ${resultado.puntuacionPhq || 0} - ${getInterpretacionPhq(resultado.puntuacionPhq)}</p>
+                        <p>• GAD-7: ${resultado.puntuacionGad || 0} - ${getInterpretacionGad(resultado.puntuacionGad)}</p>
+                        <p>• DASS Depresión: ${resultado.puntuacionDassDepresion || 0}</p>
+                        <p>• DASS Ansiedad: ${resultado.puntuacionDassAnsiedad || 0}</p>
+                        <p>• DASS Estrés: ${resultado.puntuacionDassEstres || 0}</p>
+                        <div class="recomendacion">📋 ${textoRecomendacion}</div>
+                    `;
+
+                    this.reset();
+                } else {
+                    throw new Error(json.mensaje || 'Error al guardar');
+                }
+
+                function getInterpretacionPhq(puntuacion) {
+                    if (!puntuacion || puntuacion < 5) return 'Sin depresión';
+                    if (puntuacion < 10) return 'Depresión leve';
+                    if (puntuacion < 15) return 'Depresión moderada';
+                    if (puntuacion < 20) return 'Depresión moderadamente severa';
+                    return 'Depresión severa';
+                }
+
+                function getInterpretacionGad(puntuacion) {
+                    if (!puntuacion || puntuacion < 5) return 'Sin ansiedad';
+                    if (puntuacion < 10) return 'Ansiedad leve';
+                    if (puntuacion < 15) return 'Ansiedad moderada';
+                    return 'Ansiedad severa';
+                }
+            } catch (error) {
+                document.getElementById('mensaje').className = 'mensaje error';
+                document.getElementById('mensaje').style.display = 'block';
+                document.getElementById('mensaje').textContent = 'Error al enviar la evaluación. Intente de nuevo.';
+            } finally {
+                const btn = this.querySelector('.btn');
+                btn.disabled = false;
+                btn.textContent = 'Enviar Evaluación';
+            }
+        });
+    </script>
+</body>
+</html>
